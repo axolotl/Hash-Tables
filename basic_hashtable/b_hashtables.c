@@ -90,20 +90,17 @@ BasicHashTable *create_hash_table(int capacity)
 void hash_table_insert(BasicHashTable *ht, char *key, char *value)
 {
   int hashed_key = hash(key, ht->capacity);
-  Pair *item = ht->storage[hashed_key];
-  if (item->key == NULL)
+
+  if (ht->storage[hashed_key] != NULL)
   {
-    item->key = strdup(key);
-    item->value = strdup(value);
+    fprintf(stderr, "warning overwriting key");
   }
-  else if (item->key == key)
-  {
-    item->value = strdup(value);
-  }
-  else
-  {
-    fprintf(stderr, "warning trying to overwrite key");
-  }
+
+  Pair *item = malloc(sizeof(Pair));
+  item->key = strdup(key);
+  item->value = strdup(value);
+
+  ht->storage[hashed_key] = item;
 }
 
 /****
@@ -123,6 +120,7 @@ void hash_table_remove(BasicHashTable *ht, char *key)
   {
     free(item->key);
     free(item->value);
+    free(item);
   }
 }
 
@@ -166,22 +164,22 @@ int main(void)
 {
   struct BasicHashTable *ht = create_hash_table(16);
 
-  // hash_table_insert(ht, "line", "Here today...\n");
+  hash_table_insert(ht, "line", "Here today...\n");
 
-  // printf("%s", hash_table_retrieve(ht, "line"));
+  printf("%s", hash_table_retrieve(ht, "line"));
 
-  // hash_table_remove(ht, "line");
+  hash_table_remove(ht, "line");
 
-  // if (hash_table_retrieve(ht, "line") == NULL)
-  // {
-  //   printf("...gone tomorrow. (success)\n");
-  // }
-  // else
-  // {
-  //   fprintf(stderr, "ERROR: STILL HERE\n");
-  // }
+  if (hash_table_retrieve(ht, "line") == NULL)
+  {
+    printf("...gone tomorrow. (success)\n");
+  }
+  else
+  {
+    fprintf(stderr, "ERROR: STILL HERE\n");
+  }
 
-  // destroy_hash_table(ht);
+  destroy_hash_table(ht);
 
   return 0;
 }
