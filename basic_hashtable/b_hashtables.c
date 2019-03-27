@@ -25,7 +25,7 @@ typedef struct BasicHashTable
  ****/
 Pair *create_pair(char *key, char *value)
 {
-  Pair *pair = malloc(sizeof(Pair));
+  Pair *pair = calloc(1, sizeof(Pair));
   pair->key = strdup(key);
   pair->value = strdup(value);
 
@@ -72,10 +72,10 @@ unsigned int hash(char *str, int max)
  ****/
 BasicHashTable *create_hash_table(int capacity)
 {
-  BasicHashTable *ht = malloc(sizeof(BasicHashTable));
+  BasicHashTable *ht = calloc(1, sizeof(BasicHashTable));
 
   ht->capacity = capacity;
-  ht->storage = calloc(0, sizeof(char *) * capacity);
+  ht->storage = calloc(capacity, sizeof(Pair *));
 
   return ht;
 }
@@ -96,11 +96,7 @@ void hash_table_insert(BasicHashTable *ht, char *key, char *value)
     fprintf(stderr, "warning overwriting key");
   }
 
-  Pair *item = malloc(sizeof(Pair));
-  item->key = strdup(key);
-  item->value = strdup(value);
-
-  ht->storage[hashed_key] = item;
+  ht->storage[hashed_key] = create_pair(key, value);
 }
 
 /****
@@ -112,16 +108,8 @@ void hash_table_remove(BasicHashTable *ht, char *key)
 {
   int hashed_key = hash(key, ht->capacity);
   Pair *item = ht->storage[hashed_key];
-  if (item->key == NULL)
-  {
-    fprintf(stderr, "warning key does not exist");
-  }
-  else
-  {
-    free(item->key);
-    free(item->value);
-    free(item);
-  }
+  destroy_pair(item);
+  ht->storage[hashed_key] = NULL;
 }
 
 /****
@@ -133,7 +121,7 @@ char *hash_table_retrieve(BasicHashTable *ht, char *key)
 {
   int hashed_key = hash(key, ht->capacity);
   Pair *item = ht->storage[hashed_key];
-  if (item->key)
+  if (item)
   {
     return item->value;
   }
@@ -150,13 +138,14 @@ char *hash_table_retrieve(BasicHashTable *ht, char *key)
  ****/
 void destroy_hash_table(BasicHashTable *ht)
 {
-  // char *pointer = ht->storage;
-  // while (pointer)
-  // {
-  //   free(pointer);
-  //   pointer++;
-  // }
-  // free(ht);
+  int i;
+  while (i < ht->capacity)
+  {
+    destroy_pair(ht->storage[i]);
+    i++;
+  }
+  free(ht->storage);
+  free(ht);
 }
 
 #ifndef TESTING
@@ -164,9 +153,9 @@ int main(void)
 {
   struct BasicHashTable *ht = create_hash_table(16);
 
-  hash_table_insert(ht, "line", "Here today...\n");
+  hash_table_insert(ht, "line", "Here today...yahahahahakkkkkkkkkkkkkkk\n");
 
-  printf("%s", hash_table_retrieve(ht, "line"));
+  printf("%s\n", hash_table_retrieve(ht, "line"));
 
   hash_table_remove(ht, "line");
 
